@@ -46,5 +46,16 @@ public class DataPoint {
 		return distance;
 	}
 	
+	public static DataPoint copyDataPoint(DataPoint orgDataPoint)
+	{
+		if(orgDataPoint==null) return null;
+		DataPoint copy = new DataPoint();
+		for(Float dim: orgDataPoint.point)
+		{
+			copy.point.add(dim);
+			
+		}
+		return copy;
+	}
 	
 }

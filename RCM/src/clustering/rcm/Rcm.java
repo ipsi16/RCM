@@ -22,7 +22,7 @@ public class Rcm
 	public static final float wupper = 1 - wlower;
 	public static ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 	public static ArrayList<DataPoint> datapoints = new ArrayList<DataPoint>();
-        public static ArrayList<DataPoint> dataCopy = new ArrayList<DataPoint>();
+	public static ArrayList<DataPoint> orgDatapoints = new ArrayList<DataPoint>();
 	public static float[][] distance = new float[n][noOfClusters];
 	public static float[][] membership = new float[noOfClusters][n];
 	public static float[][] oldMembership = new float[noOfClusters][n];
@@ -47,6 +47,9 @@ public class Rcm
 			return;
 		}
 		
+		//normalize datapoints
+		normalise();
+		
 		//allocate cluster centroids			
 		for(int i=0;i < noOfClusters; i++)
 		{
@@ -56,17 +59,7 @@ public class Rcm
 		
 		//calculate initial set of distance of every point from every centroid
 		calculateDistance();
-		/*
-		for(int i=0; i<datapoints.size() ; i++)
-		{
-			for(int j=0;j<noOfClusters;j++)
-			{
-				System.out.print(distance[i][j]+" ");  
-			}
-			System.out.println();
-		}
-		*/
-		
+				
 		//allocate each point to upper or lower approx of the respective clusters
 		allocateClusters();
 		
@@ -74,32 +67,19 @@ public class Rcm
 		{
 			determineNewCentroid();
 			calculateDistance();
-                   /*     for(int i=0; i<datapoints.size() ; i++)
-                        {
-			for(int j=0;j<noOfClusters;j++)
-			{
-				System.out.print(distance[i][j]+" ");  
-			}
-			System.out.println();
-                        }*/
 			allocateClusters();
 		}	
-              
+          
+		//Final output
                 System.out.println();
                 for(int i=0;i<noOfClusters;i++)
                 {
                     System.out.print("Cluster "+(i+1)+" : ");
-                    for(int j=0;j<datapoints.size();j++)
+                    for(int j=0;j<orgDatapoints.size();j++)
                     {
                         if(membership[i][j]==1.0f||membership[i][j]==0.5f)
                         {
-                            System.out.print("(");
-                            
-                            for(int k=0; k<datapoints.get(j).point.size();k++)
-                            {
-                                System.out.print(datapoints.get(j).point.get(k)+ " ");
-                                        }
-                            System.out.print(")  ");
+                             System.out.println(orgDatapoints.get(j).point);
                         }        
                   
                     }
@@ -137,7 +117,7 @@ public class Rcm
 				}
 				DataPoint datapoint = new DataPoint(dim);
 				datapoints.add(datapoint);
-                                dataCopy.add(datapoint);
+				orgDatapoints.add(DataPoint.copyDataPoint(datapoint));
 				dataLine = breader.readLine();
 				
 			}
@@ -187,11 +167,9 @@ public class Rcm
 		//compute membership matrix based on distances
 		for(int i=0;i<datapoints.size();i++)
 		{
-                    int min2Pos,minPos=0;
-                    try
-                    {
-                        
-			
+           int min2Pos,minPos=0;
+           try
+           {
 			//finding closest jth cluster for ith point
 			for(int j=0;j<noOfClusters;j++)
 			{
@@ -218,24 +196,12 @@ public class Rcm
 				membership[minPos][i]= 0.5f;
 				membership[min2Pos][i]= 0.5f;
 			}
-                    }
-                    catch(ArrayIndexOutOfBoundsException ex)
-                    {
-                        System.out.println("i="+i+"minPos="+minPos);
-                    }
-		}
-                
-                
-		/*
-		for(int i=0; i<noOfClusters ; i++)
-		{
-			for(int j=0;j<datapoints.size();j++)
-			{
-				System.out.print(membership[i][j]+" ");  
-			}
-			System.out.println();
-		}*/
-                
+          }
+          catch(ArrayIndexOutOfBoundsException ex)
+          {
+                System.out.println("i="+i+"minPos="+minPos);
+          }
+		}       
 	}
 	
 	private static void determineNewCentroid()
@@ -326,4 +292,45 @@ public class Rcm
 		return true;
 	}
 	
+	public static void normalise()				//standard normalization between range 0 - 1
+	{
+		//arrays that store max and min value for every ith dimension
+		float[] max,min;
+		max = new float[datapoints.get(0).point.size()];
+		min = new float[datapoints.get(0).point.size()];
+		
+		//initialising max and min array to dimensions of first datapoint
+		for(int i = 0; i<datapoints.get(0).point.size();i++)
+		{
+			max[i] = datapoints.get(0).point.get(i).floatValue(); 
+			min[i] = datapoints.get(0).point.get(i).floatValue(); 
+		}
+			
+		//finding max and min values for each dimension 
+		for(DataPoint dp : datapoints)
+		{
+			ArrayList<Float> currPoint = dp.point;
+			for(int i =0 ; i<currPoint.size();i++)
+			{
+				if(currPoint.get(i)>max[i])
+				{
+					max[i]=currPoint.get(i);
+				}
+				else if(currPoint.get(i)<min[i])
+				{
+					min[i]=currPoint.get(i);
+				}
+			}			
+		}
+		
+		//applying normalization formula new value = (oldValue - oldMinVal)/(oldMaxVal - oldMinVal)
+		for(DataPoint dp : datapoints)
+		{
+			ArrayList<Float> currPoint = dp.point;
+			for(int i =0 ; i<currPoint.size();i++)
+			{
+				currPoint.set(i, (currPoint.get(i)-min[i])/(max[i]-min[i]));
+			}
+		}
+	}
 }
