@@ -4,6 +4,8 @@
  */
 package clustering.rcm;
 
+import indexes.DBIndex;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.lang.reflect.Array;
@@ -91,6 +93,12 @@ public class Rcm
                     System.out.println((i+1)+"\t"+pointCount[i][0]+"\t"+ pointCount[i][1]+"\t"+pointCount[i][2]);
                    
                 }
+                 
+                 allotPointsToClusters();
+                 
+               //DB Index
+                 DBIndex dbindex = new DBIndex(clusters);
+                 System.out.println(dbindex.returnIndex());
 	}
         
 	
@@ -270,7 +278,7 @@ public class Rcm
 					clusterCentroid.set(k,wlower*lowerApproxComponent.get(k)/lowerApproxCount+wupper*upperApproxComponent.get(k)/upperApproxCount);
 				}
 			}
-                        System.out.println(clusterCentroid);
+            System.out.println(clusterCentroid);
                         
 			
 		}
@@ -330,6 +338,28 @@ public class Rcm
 			for(int i =0 ; i<currPoint.size();i++)
 			{
 				currPoint.set(i, (currPoint.get(i)-min[i])/(max[i]-min[i]));
+			}
+		}
+	}
+	
+	public static void allotPointsToClusters()
+	{
+		for(int j=0;j<datapoints.size();j++)		//For each datapoint
+		{							
+			for(int i=0; i<noOfClusters;i++)
+			{
+				if(membership[i][j]>0)
+				{	
+					clusters.get(i).memberDataPoints.add(datapoints.get(j));					//adding datapoint to cluster with max membership
+					if(membership[i][j]==1)
+					{
+						clusters.get(i).lowerApprox.add(datapoints.get(j));
+					}
+					else
+					{
+						clusters.get(i).upperApprox.add(datapoints.get(j));
+					}
+				}
 			}
 		}
 	}
