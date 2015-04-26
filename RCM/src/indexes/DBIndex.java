@@ -3,8 +3,8 @@ package indexes;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import clustering.fcm.Cluster;
-import clustering.fcm.DataPoint;
+import clustering.rcm.Cluster;
+import clustering.rcm.DataPoint;
 
 public class DBIndex 
 {
